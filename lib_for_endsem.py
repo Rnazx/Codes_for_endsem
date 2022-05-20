@@ -5,29 +5,28 @@ import numpy as np
 ##################################################################
 #############CODE FOR GAUSSIAN QUADRATURE#########################
 ##################################################################
-# Recursive generation of the Legendre polynomial of order n
-def Legendre(n,x):
+def legendre(n,x):
 	x=np.array(x)
 	if (n==0):
 		return x*0+1.0
 	elif (n==1):
 		return x
 	else:
-		return ((2.0*n-1.0)*x*Legendre(n-1,x)-(n-1)*Legendre(n-2,x))/n
+		return ((2.0*n-1.0)*x*legendre(n-1,x)-(n-1)*legendre(n-2,x))/n
  
 ##################################################################
-# Derivative of the Legendre polynomials
-def DLegendre(n,x):
+# Derivative of the legendre polynomials
+def Dlegendre(n,x):
 	x=np.array(x)
 	if (n==0):
 		return x*0
 	elif (n==1):
 		return x*0+1.0
 	else:
-		return (n/(x**2-1.0))*(x*Legendre(n,x)-Legendre(n-1,x))
+		return (n/(x**2-1.0))*(x*legendre(n,x)-legendre(n-1,x))
 ##################################################################
 # Roots of the polynomial obtained using Newton-Raphson method
-def LegendreRoots(polyorder,tolerance=1e-21):
+def legendreroots(polyorder,tolerance=1e-20):
         if polyorder<2:
             err=1 # bad polyorder no roots can be found
         else : 
@@ -38,7 +37,7 @@ def LegendreRoots(polyorder,tolerance=1e-21):
                 error=10*tolerance
                 iters=0
                 while (error>tolerance) and (iters<1000):
-                    dx=-Legendre(polyorder,x)/DLegendre(polyorder,x)
+                    dx=-legendre(polyorder,x)/Dlegendre(polyorder,x)
                     x=x+dx
                     iters=iters+1
                     error=abs(dx)
@@ -53,23 +52,19 @@ def LegendreRoots(polyorder,tolerance=1e-21):
         return [roots, err]
 ##################################################################
 # Weight coefficients
-def GaussLegendreWeights(polyorder):
+def legendre_weights(polyorder):
 	W=[]
-	[xis,err]=LegendreRoots(polyorder)
+	[xis,err]=legendreroots(polyorder)
 	if err==0:
-		W=2.0/( (1.0-xis**2)*(DLegendre(polyorder,xis)**2) )
+		W=2.0/( (1.0-xis**2)*(Dlegendre(polyorder,xis)**2) )
 		err=0
 	else:
 		err=1 # could not determine roots - so no weights
-	return [W, xis, err]
+	return [np.round_(W, decimals=9), np.round_(xis, decimals=9), err]
 ##################################################################
-# The integral value 
-# func 		: the integrand
-# a, b 		: lower and upper limits of the integral
-# polyorder 	: order of the Legendre polynomial to be used
-#
-def GaussLegendreQuadrature(func, polyorder, a, b):
-	[Ws,xs, err]= GaussLegendreWeights(polyorder)
+
+def gq_integral(func, polyorder, a, b):
+	[Ws,xs, err]= legendre_weights(polyorder)
 	if err==0:
 		ans=(b-a)*0.5*sum( Ws*func( (b-a)*0.5*xs+ (b+a)*0.5 ) )
 	else: 
@@ -77,7 +72,6 @@ def GaussLegendreQuadrature(func, polyorder, a, b):
 		err=1
 		ans=None
 	return [ans,err]
-##################################################################
 
 
 ##################################################################
